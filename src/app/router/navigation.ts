@@ -18,11 +18,19 @@ export interface AppNavItem {
   path: string;
   description: string;
   icon: LucideIcon;
+  subItems?: AppNavSubItem[];
   stats: Array<{
     label: string;
     value: string;
     helper: string;
   }>;
+}
+
+export interface AppNavSubItem {
+  id: string;
+  label: string;
+  queryKey: string;
+  viewPath: string;
 }
 
 export const NAV_ITEMS: AppNavItem[] = [
@@ -56,6 +64,50 @@ export const NAV_ITEMS: AppNavItem[] = [
     path: "/devices",
     description: "Review enrolled devices, assigned sites, and lifecycle status across the fleet.",
     icon: HardDrive,
+    subItems: [
+      {
+        id: "vendor-management",
+        label: "Vendor Management",
+        queryKey: "vendorPage",
+        viewPath: "Deviceinventory/pages/VendorManagement",
+      },
+      {
+        id: "parameter-management",
+        label: "Parameter Management",
+        queryKey: "parameterPage",
+        viewPath: "Deviceinventory/pages/ParameterManagement",
+      },
+      {
+        id: "item-type-management",
+        label: "Item-Type Management",
+        queryKey: "itemTypePage",
+        viewPath: "Deviceinventory/pages/ItemTypeManagement",
+      },
+      {
+        id: "communication-management",
+        label: "Communication Management",
+        queryKey: "communicationPage",
+        viewPath: "Deviceinventory/pages/CommunicationManagement",
+      },
+      {
+        id: "messaging-management",
+        label: "Messaging Management",
+        queryKey: "messagingPage",
+        viewPath: "Deviceinventory/pages/MessagingManagement",
+      },
+      {
+        id: "item-management",
+        label: "Item Management",
+        queryKey: "itemPage",
+        viewPath: "Deviceinventory/pages/ItemManagement",
+      },
+      {
+        id: "device-management",
+        label: "Device Management",
+        queryKey: "devicePage",
+        viewPath: "Deviceinventory/pages/DeviceManagement",
+      },
+    ],
     stats: [
       { label: "Registered", value: "3,906", helper: "Total devices cataloged" },
       { label: "Dormant", value: "112", helper: "No heartbeat in 24 hours" },

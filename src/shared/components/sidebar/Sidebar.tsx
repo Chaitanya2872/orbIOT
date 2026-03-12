@@ -1,15 +1,49 @@
 import { useEffect, useState } from "react";
-import { NavLink } from "react-router-dom";
+import { NavLink, useLocation } from "react-router-dom";
 import { Cpu } from "lucide-react";
-import { NAV_ITEMS, type AppNavItem } from "../../../app/router/navigation";
+import { NAV_ITEMS, type AppNavItem, type AppNavSubItem } from "../../../app/router/navigation";
 
 interface NavItemProps {
   item: AppNavItem;
   expanded: boolean;
+  activePath: string;
+  activeSearch: URLSearchParams;
 }
 
-function NavItem({ item, expanded }: NavItemProps) {
+interface SubNavItemProps {
+  parentPath: string;
+  subItem: AppNavSubItem;
+  activePath: string;
+  activeSearch: URLSearchParams;
+}
+
+function SubNavItem({ parentPath, subItem, activePath, activeSearch }: SubNavItemProps) {
+  const to = `${parentPath}?${subItem.queryKey}`;
+  const isActive = activePath === parentPath && activeSearch.has(subItem.queryKey);
+
+  return (
+    <li>
+      <NavLink
+        to={to}
+        className={[
+          "block rounded-lg px-2.5 py-2 text-[11px] font-semibold leading-tight transition-colors duration-150",
+          isActive
+            ? "bg-sky-100 text-sky-800"
+            : "text-slate-600 hover:bg-white hover:text-slate-900",
+        ].join(" ")}
+      >
+        {subItem.label}
+      </NavLink>
+    </li>
+  );
+}
+
+function NavItem({ item, expanded, activePath, activeSearch }: NavItemProps) {
   const Icon = item.icon;
+  const shouldShowSubItems =
+    expanded &&
+    (activePath === item.path || activePath.startsWith(`${item.path}/`)) &&
+    Boolean(item.subItems?.length);
 
   return (
     <li className="relative">
@@ -18,7 +52,7 @@ function NavItem({ item, expanded }: NavItemProps) {
         end
         className={({ isActive }) =>
           [
-            "group flex items-center gap-3 rounded-2xl px-3 py-3 text-[13px] font-medium",
+            "group flex items-center gap-3 rounded-2xl px-3.5 py-2.5 text-[13px] font-medium",
             "border border-transparent transition-all duration-150 ease-out outline-none",
             "focus-visible:ring-2 focus-visible:ring-sky-500/40",
             isActive
@@ -51,6 +85,23 @@ function NavItem({ item, expanded }: NavItemProps) {
           </>
         )}
       </NavLink>
+
+      {shouldShowSubItems && item.subItems && (
+        <ul
+          className="ml-7 mt-2 flex max-h-52 flex-col gap-1 overflow-y-auto rounded-xl border border-slate-200 bg-slate-50/80 p-2 pr-1.5"
+          role="list"
+        >
+          {item.subItems.map((subItem) => (
+            <SubNavItem
+              key={subItem.id}
+              parentPath={item.path}
+              subItem={subItem}
+              activePath={activePath}
+              activeSearch={activeSearch}
+            />
+          ))}
+        </ul>
+      )}
     </li>
   );
 }
@@ -58,6 +109,7 @@ function NavItem({ item, expanded }: NavItemProps) {
 export default function Sidebar() {
   const [canHover, setCanHover] = useState(false);
   const [active, setActive] = useState(false);
+  const location = useLocation();
 
   useEffect(() => {
     const mediaQuery = window.matchMedia("(hover: hover) and (pointer: fine)");
@@ -74,13 +126,14 @@ export default function Sidebar() {
   }, []);
 
   const expanded = !canHover || active;
+  const activeSearch = new URLSearchParams(location.search);
 
   return (
     <aside
       className={`
-        relative flex h-screen flex-col flex-shrink-0 overflow-hidden border-r border-slate-200 bg-white
+        relative flex h-screen flex-col flex-shrink-0 overflow-hidden border-r border-slate-200 bg-slate-50/80
         transition-[width] duration-300 ease-in-out
-        ${expanded ? "w-[240px]" : "w-[76px]"}
+        ${expanded ? "w-[272px]" : "w-[76px]"}
       `}
       aria-label="Primary navigation"
       aria-expanded={expanded}
@@ -109,10 +162,21 @@ export default function Sidebar() {
         </div>
       </div>
 
-      <nav className="flex-1 overflow-y-auto overflow-x-hidden px-3 py-4">
-        <ul className="flex flex-col gap-0.5" role="list">
+      <nav className="flex-1 overflow-y-auto overflow-x-hidden px-3.5 py-4">
+        {expanded && (
+          <p className="px-2 pb-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-400">
+            Navigation
+          </p>
+        )}
+        <ul className="flex flex-col gap-1.5" role="list">
           {NAV_ITEMS.map((item) => (
-            <NavItem key={item.id} item={item} expanded={expanded} />
+            <NavItem
+              key={item.id}
+              item={item}
+              expanded={expanded}
+              activePath={location.pathname}
+              activeSearch={activeSearch}
+            />
           ))}
         </ul>
       </nav>

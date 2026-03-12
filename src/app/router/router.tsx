@@ -1,6 +1,10 @@
+import { Suspense, lazy } from "react";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import AppLayout from "../layouts/AppLayout";
-import { DEFAULT_ROUTE, NAV_ITEMS, type AppNavItem } from "./navigation";
+import { NAV_ITEMS, type AppNavItem } from "./navigation";
+import AuthPage from "../../modules/auth/page";
+
+const DeviceInventoryPage = lazy(() => import("../../modules/device-inventory/page"));
 
 function FeaturePage({ item }: { item: AppNavItem }) {
   const Icon = item.icon;
@@ -84,17 +88,34 @@ export default function AppRouter() {
   return (
     <BrowserRouter>
       <Routes>
+        <Route path="/" element={<Navigate to="/login" replace />} />
+        <Route path="/login" element={<AuthPage />} />
+
         <Route path="/" element={<AppLayout />}>
-          <Route index element={<Navigate to={DEFAULT_ROUTE} replace />} />
           {NAV_ITEMS.map((item) => (
             <Route
               key={item.id}
               path={item.path.replace(/^\//, "")}
-              element={<FeaturePage item={item} />}
+              element={
+                item.id === "devices" ? (
+                  <Suspense
+                    fallback={
+                      <section className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm">
+                        <p className="expo-body text-slate-600">Loading device inventory...</p>
+                      </section>
+                    }
+                  >
+                    <DeviceInventoryPage />
+                  </Suspense>
+                ) : (
+                  <FeaturePage item={item} />
+                )
+              }
             />
           ))}
-          <Route path="*" element={<Navigate to={DEFAULT_ROUTE} replace />} />
         </Route>
+
+        <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     </BrowserRouter>
   );
